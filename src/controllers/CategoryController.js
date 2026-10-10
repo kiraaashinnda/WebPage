@@ -1,28 +1,29 @@
 import pool from "../config/db.js"
 
-export const getAllUser = async(req, res) => {
+export const getAllCategories = async(req, res) => {
   try {
-    const [rows] = await pool.query("SELECT * FROM users ORDER BY id ASC")
+    const [rows] = await pool.query("SELECT * FROM kategori ORDER BY id ASC")
     return res.status(200).json({
       status: true,
-      message: "Yaudah",
       total: rows.length,
+      message: "untung ga typo",
       data: rows,
     })
   } catch (error) {
     return res.status(500).json({
       status: false,
-      message: "gagal",
+      message: "wkwkwkwk",
       error: error.message
     })
   }
 }
 
-export const getUserById = async(req, res) => {
+export const getCatID = async(req, res) => {
 try{
 const id = parseInt(req.params.id)
-const [user] = await pool.query("SELECT id, nama, email, is_active FROM users WHERE id= ?", [id])
-if (user.length === 0) {
+const [kategori] = await pool.query("SELECT * FROM kategori WHERE id= ?", [id])
+const rows = kategori [0]
+if (!rows) {
   res.status(404).json({
     status: false,
     message: "Gada"
@@ -31,7 +32,7 @@ if (user.length === 0) {
 res.status(200).json({
     status: true,
     message: "Ada",
-    data: user
+    data: kategori
   })
 } catch (error) {
   return res.status(500).json({
@@ -41,18 +42,31 @@ res.status(200).json({
     })
 }}
 
-export const createUser = async (req, res) => {
-  const {nama, email, password} = req.body
-  
+export const createCat = async (req, res) => {
+  const {nama} = req.body
+  if(!nama) {
+    return res.status(400).json({
+      status: false,
+      message: "wkwkwk gajelas",
+    })
+  }
   try {
-  const [user] = await pool.query("INSERT INTO users(nama,email,password) VALUES (?,?,?)", [nama, email, password]);
+  const [kategori] = await pool.query("INSERT INTO kategori(nama) VALUES (?)", [nama]);
   
     return res.status(201).json({
       status: true,
       message: "ditambah",
-      data: user
+      data: kategori
     })
   } catch(error){
+      if (error.code === "ER_DUP_ENTRY")
+      {
+        return res.status(400).json({
+          status: false,
+          message: "wkwkwk mabok",
+        })
+      }
+
       return res.status(500).json({
       status: false,
       message: "gagal",
@@ -61,18 +75,22 @@ export const createUser = async (req, res) => {
   }
 }
 
-
-export const updateUser = async(req, res) => {
+export const updateCat = async(req, res) => {
   const id = parseInt(req.params.id);
-  const { nama, email, password } = req.body;
-
-  try {
-    const [user] = await pool.query("UPDATE users SET nama=?, email=?, password=? WHERE id=?", [nama, email, password, id]);
+  const {nama} = req.body;
   
+  try {
+    const [cat] = await pool.query("UPDATE kategori SET nama=? WHERE id=?", [nama, id]);
+    if (cat.affectedRows === 0) {
+      res.status(404).json({
+      status: false,
+      message: "Gada"
+      })
+    }
     return res.status(200).json({
       status: true,
-      message: "User berhasil diperbarui",
-      data: user,
+      message: "Kategori telah ditambah",
+      data: cat,
     });
   } catch (error) {
     return res.status(500).json({
@@ -83,11 +101,11 @@ export const updateUser = async(req, res) => {
   }
 };
 
-export const deleteUser = async(req,res) => {
+export const deleteCat = async(req,res) => {
   const id = parseInt(req.params.id)
   
   try {
-    await pool.query("DELETE FROM users WHERE id=?", [id]);
+    await pool.query("DELETE FROM kategori WHERE id=?", [id]);
     return res.status(200).json({
       status: true,
       message: "Dah diapus"
