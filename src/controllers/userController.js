@@ -42,10 +42,10 @@ res.status(200).json({
 }}
 
 export const createUser = async (req, res) => {
-  const {nama, email, password} = req.body
+  const {nama, email, password, is_active} = req.body
   
   try {
-  const [user] = await pool.query("INSERT INTO users(nama,email,password) VALUES (?,?,?)", [nama, email, password]);
+  const [user] = await pool.query("INSERT INTO users(nama,email,password,is_active) VALUES (?,?,?,?)", [nama, email, password, is_active]);
   
     return res.status(201).json({
       status: true,
@@ -64,16 +64,24 @@ export const createUser = async (req, res) => {
 
 export const updateUser = async(req, res) => {
   const id = parseInt(req.params.id);
-  const { nama, email, password } = req.body;
+  const { nama, email, password, is_active } = req.body;
 
   try {
-    const [user] = await pool.query("UPDATE users SET nama=?, email=?, password=? WHERE id=?", [nama, email, password, id]);
-  
+  if (!password) {
+    const [user] = await pool.query("UPDATE users SET nama=?, email=?, is_active=? WHERE id=?", [nama, email, is_active, id]);
     return res.status(200).json({
       status: true,
       message: "User berhasil diperbarui",
       data: user,
     });
+  } else {
+    const [user] = await pool.query("UPDATE users SET nama=?, email=?, password=?, is_active=? WHERE id=?", [nama, email, password, is_active, id]);
+    return res.status(200).json({
+      status: true,
+      message: "User berhasil diperbarui",
+      data: user,
+    });
+  }
   } catch (error) {
     return res.status(500).json({
       status: false,
